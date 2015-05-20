@@ -6,6 +6,8 @@ import (
 	"sync/atomic"
 )
 
+// THIS CODE IS A WIP AND SHOULD BE CONSIDERED DEPRECATED OR UNUSABLE
+
 // SeqMulti is used by multiple thread/go routines for tracking a Ring Buffer.
 type SeqMulti struct {
 	cursor     *int64    // Seq number and pointer to the next available pub/con slot.
