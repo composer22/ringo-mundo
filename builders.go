@@ -1,19 +1,21 @@
 package ringo
 
-// SimplePair is a simple network of sequencers wired together as dependencies.
-type SimplePair struct {
-	Leader   *SeqSimple
-	Follower *SeqSimple
+// SimpleQueue builds a simple queue for communication between two go routines.
+// SimplePair is useful for situation where you need a queue between one publisher and one
+// consumer without the performance degredation of locking.
+type SimpleQueue struct {
+	Publisher *SimpleNode
+	Consumer  *SimpleNode
 }
 
-// BuildSimplePair wires up and returns a simple network of sequencers.
-// SeqSimple(publisher/leader) <== 1:1 ==> SeqSimple(consumer/follower)
-func SimplePairNew(size int64) *SimplePair {
-	s := &SimplePair{
-		Leader:   SeqSimpleNew(size, nil, true),
-		Follower: SeqSimpleNew(size, nil, false),
+// SimpleQueueNew wires up and returns a simple lockless queue.
+// SimpleNode(publisher) <== 1:1 ==> SimpleNode(consumer)
+func SimpleQueueNew(size int64) *SimpleQueue {
+	s := &SimpleQueue{
+		Publisher: SimpleNodeNew(size, nil),
+		Consumer:  SimpleNodeNew(size, nil),
 	}
-	s.Leader.SetDependency(s.Follower)
-	s.Follower.SetDependency(s.Leader)
+	s.Publisher.SetDependency(s.Consumer)
+	s.Consumer.SetDependency(s.Publisher)
 	return s
 }

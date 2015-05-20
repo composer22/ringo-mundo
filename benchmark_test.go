@@ -5,9 +5,9 @@ import (
 	"testing"
 )
 
-// Simple buffer check.  Seems to do well with only 1 proc on my machine.
-// 36.6 ns/op = about 27.3 million ops per second
-func BenchmarkSimpleWriteRead(b *testing.B) {
+// Simple buffer check.
+// 49 million transactions per second. (20.5 ns/op)
+func BenchmarkSimpleRW(b *testing.B) {
 	// Set to one process.
 	prevProcs := runtime.GOMAXPROCS(-1)
 	runtime.GOMAXPROCS(1)
@@ -15,24 +15,23 @@ func BenchmarkSimpleWriteRead(b *testing.B) {
 
 	interations := int64(b.N)
 
-	m := SimplePairNew(PT64Meg)
+	m := SimpleQueueNew(PT64Meg)
 	done := make(chan bool)
 
-	go func() {
+	go func(d chan bool) {
 		for i := int64(0); i < interations; i++ {
-			j := m.Follower.Reserve()
-			m.Follower.Commit(j)
+			j := m.Consumer.ConsumeReserve()
+			m.Consumer.Commit(j)
 		}
-		close(done)
-	}()
+		close(d)
+	}(done)
 
 	b.ReportAllocs()
 	b.ResetTimer()
 
 	for i := int64(0); i < interations; i++ {
-		j := m.Leader.Reserve()
-		m.Leader.Commit(j)
-
+		j := m.Publisher.PublishReserve()
+		m.Publisher.Commit(j)
 	}
 	b.StopTimer()
 	<-done
