@@ -63,7 +63,8 @@ func TestQueueLarge(t *testing.T) {
 
 // We tried various configurations here, but settled on a flat architecture.
 // Dereferencing pointers and passing variables eats considerable CPU.
-// 55 million transactions per second (18.ns/op)
+//
+// Result: 68.0 million transactions per second (14.7 ns/op)
 //
 func BenchmarkSimpleQueue(b *testing.B) {
 	// Set to one process.

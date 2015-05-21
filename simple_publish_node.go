@@ -3,7 +3,7 @@ package ringo
 import "runtime"
 
 type SimplePublishNode struct {
-	sequence   *int64             // Write counter and index to the next rinbuffer entry.
+	sequence   int64              // Write counter and index to the next rinbuffer entry.
 	dependency *SimpleConsumeNode // The consumer who we are dependent on to read.
 	buffSize   int64              // Size of the ring buffer.
 }
@@ -11,23 +11,22 @@ type SimplePublishNode struct {
 // Factory function for returning a new instance of a SimplePublishNode.
 func SimplePublishNodeNew(size int64) *SimplePublishNode {
 	return &SimplePublishNode{
-		sequence: new(int64),
 		buffSize: size,
 	}
 }
 
 // Reserve is used by the publisher to validate it can store a new item on the buffer.
 // It returns the next index.
-func (s *SimplePublishNode) Reserve() int64 {
-	for *s.sequence-*s.dependency.sequence == s.buffSize {
+func (s *SimplePublishNode) Reserve() *int64 {
+	for s.sequence-s.dependency.sequence == s.buffSize {
 		runtime.Gosched()
 	}
-	return *s.sequence
+	return &s.sequence
 }
 
 // Commit increments the counter to indicate an entry has been stored or read.
 func (s *SimplePublishNode) Commit() {
-	*s.sequence++
+	s.sequence++
 }
 
 // SetDependency is a setter for the dependency of this node.
