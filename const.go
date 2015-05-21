@@ -1,10 +1,9 @@
 package ringo
 
 const (
-	SequenceMax     int64 = (1 << 63) - 1
-	SequenceDefault int64 = -1 // For iinitiializing seq and commit buffer
+	SequenceMax int64 = (1 << 63) - 1
 
-	// Following are some ringbuffer size recommendations based on power of two
+	// Following are some ring buffer size recommendations based on powers of two
 	PT1Meg   = 1048576
 	PT2Meg   = 2097152
 	PT4Meg   = 4194304

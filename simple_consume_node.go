@@ -3,7 +3,7 @@ package ringo
 import "runtime"
 
 type SimpleConsumeNode struct {
-	sequence   int64              // Read counter and index to the next rinbuffer entry.
+	sequence   int64              // Read counter and index to the next ringbuffer entry.
 	dependency *SimplePublishNode // The publisher node who we are dependent on for posted items.
 	buffSize   int64              // Size of the ring buffer.
 }
