@@ -21,15 +21,17 @@ func MultiPublishNodeNew(size int64) *MultiPublishNode {
 }
 
 // Reserve returns the next new index.
-func (m *MultiPublishNode) Reserve() *int64 {
+func (m *MultiPublishNode) Reserve() int64 {
 	for {
-		previous := atomic.LoadInt64(&m.sequence) // Get the previous counter.
-		next := previous + 1                      // and increment.
+		previous := m.sequence // Get the previous counter.
+		next := previous + 1   // and increment it. Hold it for later.
+		// WaitFor room in the buffer.
 		for previous-*m.dependency == m.buffSize {
 			runtime.Gosched()
 		}
+		// Try and store the increment. If it has changed loop and try again.
 		if atomic.CompareAndSwapInt64(&m.sequence, previous, next) {
-			return &previous
+			return previous
 		}
 	}
 }
@@ -44,7 +46,7 @@ func (m *MultiPublishNode) Committed() *int64 {
 	return &m.committed
 }
 
-// SetDependency set for the dependency of this node.
+// SetDependency set for the dependency commtted counter in this node.
 func (m *MultiPublishNode) SetDependency(d *int64) {
 	m.dependency = d
 }

@@ -1,6 +1,4 @@
-package example
-
-import "github.com/composer22/ringo-mundo"
+package ringo
 
 // The following is an example on how to wire up a simple disruptor pattern.
 // In a disruptor pattern, multiple publishers write events or to the ring buffer.
@@ -22,11 +20,11 @@ func DisruptorWireupExample() {
 	ringBuffer := make([]int, ringSize) // A big ring of ints all ready to go.
 
 	// Build the components
-	publisher := MultiPublishNodeNew(ringSize) // Publisher to share in incoming go routines.
-	consumer1 := MultiConsumeNodeNew(ringSize) // Journaler go routine use.
-	consumer2 := MultiConsumeNodeNew(ringSize) // Send to external system go routine use.
-	consumer3 := MultiConsumeNodeNew(ringSize) // App consumer dependent on above for go routine.
-	barrier := BarrierNew(ringSize)            // Barrier to watch consumer 1 and 2.
+	publisher := ringo.MultiPublishNodeNew(ringSize) // Publisher to share in incoming go routines.
+	consumer1 := ringo.MultiConsumeNodeNew(ringSize) // Journaler go routine use.
+	consumer2 := ringo.MultiConsumeNodeNew(ringSize) // Send to external system go routine use.
+	consumer3 := ringo.MultiConsumeNodeNew(ringSize) // App consumer dependent on above for go routine.
+	barrier := ringo.BarrierNew(ringSize)            // Barrier to watch consumer 1 and 2.
 
 	// Link the committed counter dependencies together.
 	consumer1.SetDependency(publisher.Committed())
