@@ -1,9 +1,7 @@
 package ringo
 
 import (
-	"os"
 	"runtime"
-	"runtime/pprof"
 	"testing"
 )
 
@@ -84,13 +82,10 @@ func TestMultiQueueSmall(t *testing.T) {
 		}
 		close(done)
 	}()
-	f, _ := os.Create("ringo.prof")
-	pprof.StartCPUProfile(f)
 	for i := int64(0); i < 64; i++ {
 		master.Reserve()
 		master.Commit()
 	}
-	pprof.StopCPUProfile()
 	<-done
 }
 
