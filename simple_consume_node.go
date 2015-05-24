@@ -10,7 +10,7 @@ type SimpleConsumeNode struct {
 }
 
 // Factory function for returning a new instance of a SimpleConsumeNode.
-func SimpleConsumeNodeNew(size int64) *SimpleConsumeNode {
+func SimpleConsumeNodeNew() *SimpleConsumeNode {
 	return &SimpleConsumeNode{}
 }
 

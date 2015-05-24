@@ -25,11 +25,11 @@ func TestDisruptorSmall(t *testing.T) {
 	defer runtime.GOMAXPROCS(prevProcs)
 
 	// Build the components
-	publisher := MultiPublishNodeNew(32)  // Publisher to share in incoming go routines.
-	consumer1 := SimpleConsumeNodeNew(32) // Consumer 1: Journaler
-	consumer2 := SimpleConsumeNodeNew(32) // Consumer 2: Send to external system go routine use.
-	barrier := BarrierNew(32)             // Barrier to watch consumer 1 and 2.
-	consumer3 := SimpleConsumeNodeNew(32) // Consumer 3: App consumer dependent on above for go routine.
+	publisher := MultiPublishNodeNew(32) // Publisher to share in incoming go routines.
+	consumer1 := SimpleConsumeNodeNew()  // Consumer 1: Journaler
+	consumer2 := SimpleConsumeNodeNew()  // Consumer 2: Send to external system go routine use.
+	barrier := BarrierNew()              // Barrier to watch consumer 1 and 2.
+	consumer3 := SimpleConsumeNodeNew()  // Consumer 3: App consumer dependent on above for go routine.
 
 	// Link the committed counter dependencies together.
 	consumer1.SetDependency(publisher.Committed())
@@ -86,11 +86,11 @@ func BenchmarkDisruptor(b *testing.B) {
 	interations := int64(b.N)
 
 	// Build the components
-	publisher := MultiPublishNodeNew(PT64Meg)  // Publisher to share in incoming go routines.
-	consumer1 := SimpleConsumeNodeNew(PT64Meg) // Consumer 1: Journaler
-	consumer2 := SimpleConsumeNodeNew(PT64Meg) // Consumer 2: Send to external system go routine use.
-	barrier := BarrierNew(PT64Meg)             // Barrier to watch consumer 1 and 2.
-	consumer3 := SimpleConsumeNodeNew(PT64Meg) // Consumer 3: App consumer dependent on above for go routine.
+	publisher := MultiPublishNodeNew(PT64Meg) // Publisher to share in incoming go routines.
+	consumer1 := SimpleConsumeNodeNew()       // Consumer 1: Journaler
+	consumer2 := SimpleConsumeNodeNew()       // Consumer 2: Send to external system go routine use.
+	barrier := BarrierNew()                   // Barrier to watch consumer 1 and 2.
+	consumer3 := SimpleConsumeNodeNew()       // Consumer 3: App consumer dependent on above for go routine.
 
 	// Link the committed counter dependencies together.
 	consumer1.SetDependency(publisher.Committed())

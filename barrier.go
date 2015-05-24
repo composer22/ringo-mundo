@@ -7,15 +7,13 @@ import "runtime"
 type Barrier struct {
 	committed    int64    // Read counter and index to the next ring buffer entry.
 	dependencies []*int64 // A list of commit registers for upstream activity.
-	buffSize     int64    // Size of the ring buffer.
 	running      bool     // Is the Barrier chasing the dependencies in a Run() loop?
 }
 
 // Factory function for returning a new instance of a Barrier.
-func BarrierNew(size int64) *Barrier {
+func BarrierNew() *Barrier {
 	return &Barrier{
 		dependencies: make([]*int64, 0),
-		buffSize:     size,
 	}
 }
 

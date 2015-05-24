@@ -12,7 +12,7 @@ func TestSimpleQueueSmall(t *testing.T) {
 	defer runtime.GOMAXPROCS(prevProcs)
 
 	master := SimplePublishNodeNew(32)
-	slave := SimpleConsumeNodeNew(32)
+	slave := SimpleConsumeNodeNew()
 	master.SetDependency(slave.Committed())
 	slave.SetDependency(master.Committed())
 
@@ -40,7 +40,7 @@ func TestSimpleQueueLarge(t *testing.T) {
 	defer runtime.GOMAXPROCS(prevProcs)
 
 	master := SimplePublishNodeNew(PT64Meg)
-	slave := SimpleConsumeNodeNew(PT64Meg)
+	slave := SimpleConsumeNodeNew()
 	master.SetDependency(slave.Committed())
 	slave.SetDependency(master.Committed())
 
@@ -68,7 +68,7 @@ func TestMultiQueueSmall(t *testing.T) {
 	defer runtime.GOMAXPROCS(prevProcs)
 
 	master := MultiPublishNodeNew(32)
-	slave := SimpleConsumeNodeNew(32)
+	slave := SimpleConsumeNodeNew()
 	master.SetDependency(slave.Committed())
 	slave.SetDependency(master.Committed())
 
@@ -110,7 +110,7 @@ func BenchmarkSimpleQueue(b *testing.B) {
 	interations := int64(b.N)
 
 	master := SimplePublishNodeNew(PT64Meg)
-	slave := SimpleConsumeNodeNew(PT64Meg)
+	slave := SimpleConsumeNodeNew()
 	master.SetDependency(slave.Committed())
 	slave.SetDependency(master.Committed())
 
@@ -147,7 +147,7 @@ func BenchmarkMultiQueue(b *testing.B) {
 	interations := int64(b.N)
 
 	master := MultiPublishNodeNew(PT64Meg)
-	slave := SimpleConsumeNodeNew(PT64Meg)
+	slave := SimpleConsumeNodeNew()
 	master.SetDependency(slave.Committed())
 	slave.SetDependency(master.Committed())
 
@@ -166,6 +166,39 @@ func BenchmarkMultiQueue(b *testing.B) {
 	for i := int64(0); i < interations; i++ {
 		master.Reserve()
 		master.Commit()
+	}
+
+	b.StopTimer()
+	<-done
+}
+
+// 89.4 ns/op
+func BenchmarkChannelCompare(b *testing.B) {
+	prevProcs := runtime.GOMAXPROCS(-1)
+	runtime.GOMAXPROCS(1)
+	defer runtime.GOMAXPROCS(prevProcs)
+	interations := int64(b.N)
+
+	queue := make(chan bool, interations)
+	done := make(chan bool)
+
+	go func(q chan bool, d chan bool) {
+		i := int64(0)
+		for i < interations {
+			select {
+			case <-q:
+				i++
+			default:
+			}
+			runtime.Gosched()
+		}
+		d <- true
+	}(queue, done)
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := int64(0); i < interations; i++ {
+		queue <- true
 	}
 
 	b.StopTimer()
