@@ -9,9 +9,12 @@ import "runtime"
 // and record the lowest completed result. The third Consumer would check the barrier to see if it
 // can proceed to read the next cell.
 type Barrier struct {
-	committed    int64    // Lowest committed cell value from the dependencies.
+	committed    int64 // Lowest committed cell value from the dependencies.
+	running      bool  // Is this Barrier chasing the dependencies in a Run() loop?
+	padding1     int8
+	padding2     int16
+	padding3     int32
 	dependencies []*int64 // A list of committed registers for upstream activity.
-	running      bool     // Is this Barrier chasing the dependencies in a Run() loop?
 }
 
 // Factory function for returning a new instance of a Barrier.
