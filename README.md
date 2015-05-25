@@ -4,7 +4,7 @@
 [![Current Release](https://img.shields.io/badge/release-v0.1.0-brightgreen.svg)](https://github.com/composer22/chattypantz/releases/tag/v0.1.0)
 [![Coverage Status](https://coveralls.io/repos/composer22/ringo-mundo/badge.svg?branch=master)](https://coveralls.io/r/composer22/ringo-mundo?branch=master)
 
-A very simple and optimized package to help manage a ring buffers written in [Go.](http://golang.org).
+A very simple and optimized package to help manage ring buffers, written in [Golang.](http://golang.org).
 
 ## What This Package Does
 
@@ -13,7 +13,7 @@ In creating queues for an application, Go channels, object allocation, and locks
 ## What is a Ring Buffer?
 
 A ring buffer is simply an array of values who's head wraps around to the first slot.  For example, an 8 position ring buffer:
-
+```
 Actual Cell        [0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 0 | 1 | 2 | 3 | ...]
 Increment Index     0   1   2   3   4   5   6   7   8   9   10  11  ...
 
@@ -28,7 +28,7 @@ arr := make([]int, 8)
 mask = len(arr) - 1
 one := 9&mask // is 1
 two := 10&mask // is 2
-
+```
 Ring buffers are a good structure to use in queuing work for processing. A publisher can move through the buffer writing work to be done.  A consumer can follow this trail processing the jobs. When the publisher reaches the end, it can return to the beginning without checking for the end of the array or resetting it's index and continue to write new work to the beginning slots that have been processed by the consumer. Locks can be eliminated by reading each other's position and avoiding passing.
 
 For more information on ring buffers, see: [Circular Buffers](http://en.wikipedia.org/wiki/Circular_buffer).
@@ -74,7 +74,7 @@ for i = 0; i < ringSize; i++ {
 ```
 Note that the size is expressed as a power of two and is quite large. See the constant file for example sizes. You should pick a ring buffer size based on available machine memory and fine tune the size as needed.  The larger the buffer the less number of rotations and possible contentions.
 
-Next, we create the network of components to manage this ring.   For example, a simple publish/subscribe queue:
+Next, we create the network of components to manage this ring. For example, a simple publish/subscribe queue:
 ```
 publisher := ringo.SimplePublishNodeNew(ringSize)
 consumer := ringo.SimpleConsumeNodeNew()
