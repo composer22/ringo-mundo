@@ -5,11 +5,12 @@ import (
 	"sync/atomic"
 )
 
-// MultiPublishNode is used by multiple thread/go routines for publishing events to the ring buffer.
+// MultiPublishNode is shared by multiple thread/go routines for publishing events to the ring buffer.
+// Because multiple routines must compete for next index, a single lock is maintained.
 type MultiPublishNode struct {
-	sequence   int64  // Write counter and index to the next ringbuffer entry.
+	sequence   int64  // Write counter and index to the next ring buffer entry.
 	committed  int64  // Keeps track of the number of written events to the ring.
-	dependency *int64 // The consumer who we are dependent on to read from the buffer.
+	dependency *int64 // The consumer's committed register we are dependent to finish before proceeding.
 	buffSize   int64  // Size of the ring buffer.
 }
 
@@ -25,18 +26,18 @@ func (m *MultiPublishNode) Reserve() int64 {
 	for {
 		previous := m.sequence // Get the previous counter.
 		next := previous + 1   // and increment it. Hold it for later.
-		// WaitFor room in the buffer.
+		// Wait for room in the buffer if it is full.
 		for previous-*m.dependency == m.buffSize {
 			runtime.Gosched()
 		}
-		// Try and store the increment. If it has changed loop and try again.
+		// Try and store the new increment. If it was changed by another routine, loop and try again.
 		if atomic.CompareAndSwapInt64(&m.sequence, previous, next) {
 			return previous
 		}
 	}
 }
 
-// Commit increments the comms to indicate an entry has been stored.
+// Commit increments the commit register to indicate an entry has been stored.
 func (m *MultiPublishNode) Commit() {
 	m.committed++
 }
@@ -46,7 +47,7 @@ func (m *MultiPublishNode) Committed() *int64 {
 	return &m.committed
 }
 
-// SetDependency set for the dependency commtted counter in this node.
+// SetDependency set the commtted counter that must complete work before we can proceed.
 func (m *MultiPublishNode) SetDependency(d *int64) {
 	m.dependency = d
 }

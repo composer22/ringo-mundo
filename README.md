@@ -1,23 +1,64 @@
 # Ringo Mundo
 [![License MIT](https://img.shields.io/npm/l/express.svg)](http://opensource.org/licenses/MIT)
-[![Build Status](https://travis-ci.org/composer22/ringo-blingo.svg?branch=master)](http://travis-ci.org/composer22/ringo-blingo)
+[![Build Status](https://travis-ci.org/composer22/ringo-mundo.svg?branch=master)](http://travis-ci.org/composer22/ringo-mundo)
 [![Current Release](https://img.shields.io/badge/release-v0.1.0-brightgreen.svg)](https://github.com/composer22/chattypantz/releases/tag/v0.1.0)
-[![Coverage Status](https://coveralls.io/repos/composer22/ringo-blingo/badge.svg?branch=master)](https://coveralls.io/r/composer22/ringo-blingo?branch=master)
+[![Coverage Status](https://coveralls.io/repos/composer22/ringo-mundo/badge.svg?branch=master)](https://coveralls.io/r/composer22/ringo-mundo?branch=master)
 
-A very simple and optimized package to help manage a ring buffer use between publishers and consumers  written in [Go.](http://golang.org).
+A very simple and optimized package to help manage a ring buffers written in [Go.](http://golang.org).
 
-## About
+## What This Package Does
 
-TODO
+In creating queues for an application, Go channels, object allocation, and locks take up great amounts of processing time. This package provides a toolkit to eliminate contentions and unecessary memory allocation and processing.
 
-## What is a ring buffer?
+## What is a Ring Buffer?
 
-TODO
+A ring buffer is simply an array of values who's head wraps around to the first slot.  For example, an 8 position ring buffer:
 
-## How this package works
+Actual Cell        [0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 0 | 1 | 2 | 3 | ...]
+Increment Index     0   1   2   3   4   5   6   7   8   9   10  11  ...
 
-One of more publishers use a Master object to coordinate and place information into a ringbuffer, while one or more consumers use Slave objects to coordinate and process information from the cyclic buffer of work. The Master and Slave objects validate they do not overwrite each other in the ring by reading each other's counters or status arrays.
+Using modulus arithmetic any incremented index can be converted to the actual index of an array.
 
+IncrIndex % size = actualIndex e.g. cell
+9 % 8 = 1
+10 % 8 = 2
+
+A faster computated way is to use masking:
+arr := make([]int, 8)
+mask = len(arr) - 1
+one := 9&mask // is 1
+two := 10&mask // is 2
+
+Ring buffers are a good structure to use in queuing work for processing. A publisher can move through the buffer writing work to be done.  A consumer can follow this trail processing the jobs. When the publisher reaches the end, it can return to the beginning without checking for the end of the array or resetting it's index and continue to write new work to the beginning slots that have been processed by the consumer. Locks can be eliminated by reading each other's position and avoiding passing.
+
+For more information on ring buffers, see: [Circular Buffers](http://en.wikipedia.org/wiki/Circular_buffer).
+
+## How This Package Works
+
+One of more publishers use a Publisher object to coordinate and place information into a ringbuffer, while one or more processor routines use Consumer objects to coordinate and process information from the cyclic buffer of work. The Publisher and Consumer objects validate they do not overwrite each other in the ring by reading each other's counters or status arrays.
+
+To help facilitate multiplexing of Consumers, and to gate any dependencies, a Barrier object is also provided.
+
+## Performance
+
+The following benchmarks were gathered on a development machine.
+```
+MBP 13-inch, Mid 2009
+2.53 GHz Intel Core 2 Duo
+4 GB 1067 MHz DDR3
+OSX 10.10.3
+
+Simple Queue
+============
+SinglePublisher:         98.0 million transactions per second (10.2 ns/op)
+MultiPublisher:          32.9 million transactions per second (30.4 ns/op)
+Using Go Channel:        11.2 million transactions per second (89.4 ns/op)
+
+Disruptor Pattern
+=================
+SinglePublisher:         45.9 million transactions per second (21.8 ns/op)
+MultiPublisher:          23.6 million transactions per second (42.3 ns/op)
+```
 ## Getting Started
 
 To create a ring-buffer, first pre-allocate a specialized array of work you want to track.
@@ -31,19 +72,20 @@ for i = 0; i < ringSize; i++ {
 	ring[i] = &MyWorkStruct{foo: 0}
 }
 ```
-Next, we create the network of components to manage this ring.   For example, a simple publisher/subscriber queue:
+Note that the size is expressed as a power of two and is quite large. See the constant file for example sizes. You should pick a ring buffer size based on available machine memory and fine tune the size as needed.  The larger the buffer the less number of rotations and possible contentions.
+
+Next, we create the network of components to manage this ring.   For example, a simple publish/subscribe queue:
 ```
 publisher := ringo.SimplePublishNodeNew(ringSize)
 consumer := ringo.SimpleConsumeNodeNew()
+// Set each component to check the others committed counters.
 publisher.SetDependency(consumer.Committed())
 consumer.SetDependency(publisher.Committed())
 ```
 
 The publisher is used to synchronize the work to be written to the buffer.
-A consumer is used to synchonize the work to be consumed from the buffer.
-Each is dependent on the other from rotation to rotation.  The consumer cannot pass the publisher.  The publisher cannot pass the consumer if the consumer has not completed the previous iteration of work in the buffer. In essense, each head is chasing the others tail in a spiral.
-
-The size should be a power of two.  See the constant file for example sizes. You should pick a ring buffer size based on available machine memory and fine tune the size as needed.  The larger the buffer the less number of rotations and possible contentions.
+A consumer is used to synchonize the work to be consumed from the buffer for processing.
+Each is dependent on the other to finish its work, from rotation to rotation.  The consumer cannot pass the publisher.  The publisher cannot pass the consumer. In essense, each head is chasing the others tail in a circle.
 
 A publisher go routine would be coded to get work into the buffer:
 ```
@@ -63,7 +105,9 @@ for {
 }
 
 ```
-For a more complex example of a Disruptor pattern, which demonstrates mutiplexing and chained consumers, please see disruptor_test.go.
+The *index&mask is the same as index % size.
+
+For a more complex example, see the Disruptor pattern, which demonstrates mutiplexing and chained consumers (disruptor_test.go).
 
 ## Building
 

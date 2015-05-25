@@ -5,6 +5,8 @@ import (
 	"testing"
 )
 
+// A simple queue: Publisher <==> Consumer
+//
 func TestSimpleQueueSmall(t *testing.T) {
 	// Set to one process.
 	prevProcs := runtime.GOMAXPROCS(-1)
@@ -33,6 +35,8 @@ func TestSimpleQueueSmall(t *testing.T) {
 	<-done
 }
 
+// A simple queue: Publisher <==> Consumer
+// With larger buffer.
 func TestSimpleQueueLarge(t *testing.T) {
 	// Set to one process.
 	prevProcs := runtime.GOMAXPROCS(-1)
@@ -61,6 +65,7 @@ func TestSimpleQueueLarge(t *testing.T) {
 	<-done
 }
 
+// A Multi Publisher queue: n-Publishers <==> 1 Consumer
 func TestMultiQueueSmall(t *testing.T) {
 	// Set to one process.
 	prevProcs := runtime.GOMAXPROCS(-1)
@@ -134,7 +139,7 @@ func BenchmarkSimpleQueue(b *testing.B) {
 	<-done
 }
 
-// Multi Queue Benchmark.
+// Multi publisher Queue Benchmark.
 // Same spec as above.
 // Because this depends on a lock in the master publisher so it can be shared, its slower.
 // Result: 32.9 million transactions per second (30.4 ns/op)
@@ -172,7 +177,10 @@ func BenchmarkMultiQueue(b *testing.B) {
 	<-done
 }
 
-// 89.4 ns/op
+// Baseline queue test using Golang Channel
+//
+// 11.2 million transactions per second 89.4 ns/op
+//
 func BenchmarkChannelCompare(b *testing.B) {
 	prevProcs := runtime.GOMAXPROCS(-1)
 	runtime.GOMAXPROCS(1)

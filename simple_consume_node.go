@@ -3,10 +3,10 @@ package ringo
 import "runtime"
 
 // SimpleConsumeNode represents a reader, a consumer who processes entries from the ring buffer.
-// Each go routine that acts as a consumer should have an instatiate object for tracking results.
+// Each go routine that acts as a consumer should have an instantiated object for tracking it's results.
 type SimpleConsumeNode struct {
 	committed  int64  // Read counter and index to the next ring buffer entry.
-	dependency *int64 // Pointer to upstream dependency
+	dependency *int64 // The committed register that this object is dependent on to finish.
 }
 
 // Factory function for returning a new instance of a SimpleConsumeNode.
@@ -15,7 +15,7 @@ func SimpleConsumeNodeNew() *SimpleConsumeNode {
 }
 
 // Reserve is used by the consumer to validate it should read a new item from the buffer.
-// It returns the next index.
+// It returns the next index as a pointer.
 func (s *SimpleConsumeNode) Reserve() *int64 {
 	for *s.dependency-s.committed == 0 {
 		runtime.Gosched()

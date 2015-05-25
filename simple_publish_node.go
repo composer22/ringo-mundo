@@ -2,12 +2,12 @@ package ringo
 
 import "runtime"
 
-// SimpleConsumeNode represents a publisher, a job source who submits entries into the ring buffer.
-// Only one go routine that acts as a publisher should have an instatiate object for publishing events.
-// This is a lock-less implementation of a publisher, since it is only one source.
+// SimplePublishNode represents a publisher, a job source who submits entries into the ring buffer.
+// There is no locking with this implementation. Only one go routine that acts as a publisher should
+// have an instantiate object for publishing events.
 type SimplePublishNode struct {
-	committed  int64  // Write counter and index to the next ringbuffer entry.
-	dependency *int64 // The consumer who we are dependent on to read.
+	committed  int64  // Write counter and index to the next ring buffer entry.
+	dependency *int64 // The committed register that this object is dependent on to finish.
 	buffSize   int64  // Size of the ring buffer.
 }
 
@@ -19,7 +19,7 @@ func SimplePublishNodeNew(size int64) *SimplePublishNode {
 }
 
 // Reserve is used by the publisher to validate it can store a new item on the buffer.
-// It returns the next index.
+// It returns the next index as a pointer.
 func (s *SimplePublishNode) Reserve() *int64 {
 	for s.committed-*s.dependency == s.buffSize {
 		runtime.Gosched()
