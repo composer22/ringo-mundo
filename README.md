@@ -48,16 +48,16 @@ MBP 13-inch, Mid 2009
 4 GB 1067 MHz DDR3
 OSX 10.10.3
 
-Simple Queue
-============
+Simple Queue - One CPU worked best in testing.
+=============================================
 SinglePublisher:         98.0 million transactions per second (10.2 ns/op)
 MultiPublisher:          32.9 million transactions per second (30.4 ns/op)
 Using Go Channel:        11.2 million transactions per second (89.4 ns/op)
 
-Disruptor Pattern
-=================
-SinglePublisher:         45.9 million transactions per second (21.8 ns/op)
-MultiPublisher:          23.6 million transactions per second (42.3 ns/op)
+Disruptor Pattern - Two CPUs worked best in testing.
+===================================================
+SinglePublisher:         71.9 million transactions per second (13.9 ns/op)
+MultiPublisher:          29.2 million transactions per second (34.2 ns/op)
 ```
 ## Getting Started
 

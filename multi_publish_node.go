@@ -8,10 +8,15 @@ import (
 // MultiPublishNode is shared by multiple thread/go routines for publishing events to the ring buffer.
 // Because multiple routines must compete for next index, a single lock is maintained.
 type MultiPublishNode struct {
-	sequence   int64  // Write counter and index to the next ring buffer entry.
-	committed  int64  // Keeps track of the number of written events to the ring.
+	cachepad1  [8]int64
+	sequence   int64 // Write counter and index to the next ring buffer entry.
+	cachepad2  [8]int64
+	committed  int64 // Keeps track of the number of written events to the ring.
+	cachepad3  [8]int64
 	dependency *int64 // The consumer's committed register we are dependent to finish before proceeding.
-	buffSize   int64  // Size of the ring buffer.
+	cachepad4  [8]int64
+	buffSize   int64 // Size of the ring buffer.
+	cachepad5  [8]int64
 }
 
 // Factory function for returning a new instance of a MultiPublishNode.

@@ -22,7 +22,7 @@ import (
 //
 func TestDisruptorSmall(t *testing.T) {
 	prevProcs := runtime.GOMAXPROCS(-1)
-	runtime.GOMAXPROCS(1)
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	defer runtime.GOMAXPROCS(prevProcs)
 
 	// Build the components
@@ -78,23 +78,24 @@ func TestDisruptorSmall(t *testing.T) {
 
 }
 
-// Multiple publishers - standard Disruptor pattern.
+// Simplified Disruptor Pattern - Single publishing source.
 //
-// go test -run=XXX -bench=BenchmarkDisruptorMulti
-// 23.6 million transactions per second (42.3 ns/op)
-//
-func BenchmarkDisruptorMulti(b *testing.B) {
+// Using a simple publisher w/o lock instead of multiple w/ lock.
+// go test -run=XXX -bench=BenchmarkDisruptorSimple
+// 71.9 million transactions per second (13.9 ns/op)
+// Two CPUs work best
+func BenchmarkDisruptorSimple(b *testing.B) {
 	prevProcs := runtime.GOMAXPROCS(-1)
-	runtime.GOMAXPROCS(1)
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	defer runtime.GOMAXPROCS(prevProcs)
 	interations := int64(b.N)
 
 	// Build the components
-	publisher := MultiPublishNodeNew(PT64Meg) // Publisher to share in incoming go routines.
-	consumer1 := SimpleConsumeNodeNew()       // Consumer 1: Journaler
-	consumer2 := SimpleConsumeNodeNew()       // Consumer 2: Send to external system go routine use.
-	barrier := BarrierNew()                   // Barrier to watch consumer 1 and 2.
-	consumer3 := SimpleConsumeNodeNew()       // Consumer 3: App consumer dependent on above for go routine.
+	publisher := SimplePublishNodeNew(PT64Meg) // Publisher for one incoming go routine.
+	consumer1 := SimpleConsumeNodeNew()        // Consumer 1: Journaler
+	consumer2 := SimpleConsumeNodeNew()        // Consumer 2: Send to external system go routine use.
+	barrier := BarrierNew()                    // Barrier to watch consumer 1 and 2.
+	consumer3 := SimpleConsumeNodeNew()        // Consumer 3: App consumer dependent on above for go routine.
 
 	// Link the committed counter dependencies together.
 	consumer1.SetDependency(publisher.Committed())
@@ -145,24 +146,23 @@ func BenchmarkDisruptorMulti(b *testing.B) {
 	barrier.Stop()
 }
 
-// Simplified Disruptor Pattern - Single publishing source.
+// Multiple publishers - standard Disruptor pattern.
 //
-// Using a simple publisher w/o lock instead of multiple w/ lock.
-// go test -run=XXX -bench=BenchmarkDisruptorSimple
-// 45.9 million transactions per second (21.8 ns/op)
-//
-func BenchmarkDisruptorSimple(b *testing.B) {
+// go test -run=XXX -bench=BenchmarkDisruptorMulti
+// 29.2 million transactions per second (34.2 ns/op)
+// Two CPUs work best
+func BenchmarkDisruptorMulti(b *testing.B) {
 	prevProcs := runtime.GOMAXPROCS(-1)
-	runtime.GOMAXPROCS(1)
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	defer runtime.GOMAXPROCS(prevProcs)
 	interations := int64(b.N)
 
 	// Build the components
-	publisher := SimplePublishNodeNew(PT64Meg) // Publisher for one incoming go routine.
-	consumer1 := SimpleConsumeNodeNew()        // Consumer 1: Journaler
-	consumer2 := SimpleConsumeNodeNew()        // Consumer 2: Send to external system go routine use.
-	barrier := BarrierNew()                    // Barrier to watch consumer 1 and 2.
-	consumer3 := SimpleConsumeNodeNew()        // Consumer 3: App consumer dependent on above for go routine.
+	publisher := MultiPublishNodeNew(PT64Meg) // Publisher to share in incoming go routines.
+	consumer1 := SimpleConsumeNodeNew()       // Consumer 1: Journaler
+	consumer2 := SimpleConsumeNodeNew()       // Consumer 2: Send to external system go routine use.
+	barrier := BarrierNew()                   // Barrier to watch consumer 1 and 2.
+	consumer3 := SimpleConsumeNodeNew()       // Consumer 3: App consumer dependent on above for go routine.
 
 	// Link the committed counter dependencies together.
 	consumer1.SetDependency(publisher.Committed())

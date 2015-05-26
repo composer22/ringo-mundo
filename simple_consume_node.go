@@ -5,8 +5,11 @@ import "runtime"
 // SimpleConsumeNode represents a reader, a consumer who processes entries from the ring buffer.
 // Each go routine that acts as a consumer should have an instantiated object for tracking it's results.
 type SimpleConsumeNode struct {
-	committed  int64  // Read counter and index to the next ring buffer entry.
+	cachepad1  [8]int64
+	committed  int64 // Read counter and index to the next ring buffer entry.
+	cachepad2  [8]int64
 	dependency *int64 // The committed register that this object is dependent on to finish.
+	cachepad3  [8]int64
 }
 
 // Factory function for returning a new instance of a SimpleConsumeNode.

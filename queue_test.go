@@ -10,7 +10,7 @@ import (
 func TestSimpleQueueSmall(t *testing.T) {
 	// Set to one process.
 	prevProcs := runtime.GOMAXPROCS(-1)
-	runtime.GOMAXPROCS(1)
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	defer runtime.GOMAXPROCS(prevProcs)
 
 	master := SimplePublishNodeNew(32)
@@ -40,7 +40,7 @@ func TestSimpleQueueSmall(t *testing.T) {
 func TestSimpleQueueLarge(t *testing.T) {
 	// Set to one process.
 	prevProcs := runtime.GOMAXPROCS(-1)
-	runtime.GOMAXPROCS(1)
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	defer runtime.GOMAXPROCS(prevProcs)
 
 	master := SimplePublishNodeNew(PT64Meg)
@@ -69,7 +69,7 @@ func TestSimpleQueueLarge(t *testing.T) {
 func TestMultiQueueSmall(t *testing.T) {
 	// Set to one process.
 	prevProcs := runtime.GOMAXPROCS(-1)
-	runtime.GOMAXPROCS(1)
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	defer runtime.GOMAXPROCS(prevProcs)
 
 	master := MultiPublishNodeNew(32)
@@ -106,7 +106,7 @@ func TestMultiQueueSmall(t *testing.T) {
 // Dereferencing pointers and passing variables eats considerable CPU.
 //
 // Result: 98.0 million transactions per second (10.2 ns/op)
-//
+// Single CPU works best
 func BenchmarkSimpleQueue(b *testing.B) {
 	// Set to one process.
 	prevProcs := runtime.GOMAXPROCS(-1)
@@ -143,7 +143,7 @@ func BenchmarkSimpleQueue(b *testing.B) {
 // Same spec as above.
 // Because this depends on a lock in the master publisher so it can be shared, its slower.
 // Result: 32.9 million transactions per second (30.4 ns/op)
-//
+// Single CPU works best
 func BenchmarkMultiQueue(b *testing.B) {
 	// Set to one process.
 	prevProcs := runtime.GOMAXPROCS(-1)
@@ -180,7 +180,7 @@ func BenchmarkMultiQueue(b *testing.B) {
 // Baseline queue test using Golang Channel
 //
 // 11.2 million transactions per second 89.4 ns/op
-//
+// Single CPU works best
 func BenchmarkChannelCompare(b *testing.B) {
 	prevProcs := runtime.GOMAXPROCS(-1)
 	runtime.GOMAXPROCS(1)
