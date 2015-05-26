@@ -12,9 +12,9 @@ type Barrier struct {
 	cachepad1    [8]int64
 	committed    int64 // Lowest committed cell value from the dependencies.
 	cachepad2    [8]int64
-	running      bool // Is this Barrier chasing the dependencies in a Run() loop?
-	cachepad3    [8]int64
 	dependencies []*int64 // A list of committed registers for upstream activity.
+	cachepad3    [8]int64
+	running      bool // Is this Barrier chasing the dependencies in a Run() loop?
 	cachepad4    [8]int64
 }
 
