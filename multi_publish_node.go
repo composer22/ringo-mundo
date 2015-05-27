@@ -30,13 +30,12 @@ func MultiPublishNodeNew(size int64) *MultiPublishNode {
 func (m *MultiPublishNode) Reserve() int64 {
 	for {
 		previous := m.sequence // Get the previous counter.
-		next := previous + 1   // and increment it. Hold it for later.
 		// Wait for room in the buffer if it is full.
 		for previous-*m.dependency == m.buffSize {
 			runtime.Gosched()
 		}
 		// Try and store the new increment. If it was changed by another routine, loop and try again.
-		if atomic.CompareAndSwapInt64(&m.sequence, previous, next) {
+		if atomic.CompareAndSwapInt64(&m.sequence, previous, previous+1) {
 			return previous
 		}
 	}
