@@ -86,7 +86,7 @@ func TestDisruptorSmall(t *testing.T) {
 // Two CPUs work best
 func BenchmarkDisruptorSimple(b *testing.B) {
 	prevProcs := runtime.GOMAXPROCS(-1)
-	runtime.GOMAXPROCS(runtime.NumCPU())
+	runtime.GOMAXPROCS(1) // runtime.NumCPU()
 	defer runtime.GOMAXPROCS(prevProcs)
 	interations := int64(b.N)
 
@@ -153,7 +153,7 @@ func BenchmarkDisruptorSimple(b *testing.B) {
 // Two CPUs work best
 func BenchmarkDisruptorMulti(b *testing.B) {
 	prevProcs := runtime.GOMAXPROCS(-1)
-	runtime.GOMAXPROCS(runtime.NumCPU())
+	runtime.GOMAXPROCS(1)
 	defer runtime.GOMAXPROCS(prevProcs)
 	interations := int64(b.N)
 

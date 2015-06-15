@@ -43,21 +43,21 @@ To help facilitate multiplexing of Consumers, and to gate any dependencies, a Ba
 
 The following benchmarks were gathered on a development machine.
 ```
-MBP 13-inch, Mid 2009
-2.53 GHz Intel Core 2 Duo
-4 GB 1067 MHz DDR3
+MBP 15-inch, Mid 2014
+2.5 GHz Intel Core i7 Quad
+16 GB 1600 MHz DDR3
 OSX 10.10.3
 
 Simple Queue - One CPU worked best in testing.
 =============================================
-SinglePublisher:         98.0 million transactions per second (10.2 ns/op)
-MultiPublisher:          32.9 million transactions per second (30.4 ns/op)
-Using Go Channel:        11.2 million transactions per second (89.4 ns/op)
+SinglePublisher:         171.2 million transactions per second (5.84 ns/op)
+MultiPublisher:          70.9 million transactions per second (14.1 ns/op)
+Using Go Channel:        30.2 million transactions per second (33.1 ns/op)
 
-Disruptor Pattern - Two CPUs worked best in testing.
+Disruptor Pattern - One CPU worked best in testing.
 ===================================================
-SinglePublisher:         71.9 million transactions per second (13.9 ns/op)
-MultiPublisher:          29.2 million transactions per second (34.2 ns/op)
+SinglePublisher:         85.4 million transactions per second (11.7 ns/op)
+MultiPublisher:          49.0 million transactions per second (20.4 ns/op)
 ```
 ## Getting Started
 
