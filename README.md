@@ -50,14 +50,14 @@ OSX 10.10.3
 
 Simple Queue - One CPU worked best in testing.
 =============================================
-SinglePublisher:         171.2 million transactions per second (5.84 ns/op)
-MultiPublisher:          70.9 million transactions per second (14.1 ns/op)
+SinglePublisher:         219.7 million transactions per second (4.55 ns/op)
+MultiPublisher:          72.4 million transactions per second (13.8 ns/op)
 Using Go Channel:        30.2 million transactions per second (33.1 ns/op)
 
 Disruptor Pattern - One CPU worked best in testing.
 ===================================================
-SinglePublisher:         85.4 million transactions per second (11.7 ns/op)
-MultiPublisher:          49.0 million transactions per second (20.4 ns/op)
+SinglePublisher:         98.0 million transactions per second (10.2 ns/op)
+MultiPublisher:          50.0 million transactions per second (20.0 ns/op)
 ```
 ## Getting Started
 

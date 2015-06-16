@@ -127,6 +127,7 @@ func BenchmarkSimpleQueue(b *testing.B) {
 	}
 	b.StopTimer()
 	<-done
+
 }
 
 // Multi publisher Queue Benchmark.
