@@ -198,3 +198,32 @@ func BenchmarkChannelCompare(b *testing.B) {
 	b.StopTimer()
 	<-done
 }
+
+// Baseline queue test using Golang Channel
+//
+func BenchmarkPOC(b *testing.B) {
+	prevProcs := runtime.GOMAXPROCS(-1)
+	runtime.GOMAXPROCS(runtime.NumCPU()) //runtime.NumCPU()
+	defer runtime.GOMAXPROCS(prevProcs)
+	interations := int64(b.N)
+
+	master := &POCProducer{}
+	slave := &POCConsumer{dependency: &master.committed}
+
+	done := make(chan bool)
+
+	go func() {
+		for i := int64(0); i < interations; i++ {
+			slave.Read()
+		}
+		close(done)
+	}()
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := int64(0); i < interations; i++ {
+		master.Commit()
+	}
+	b.StopTimer()
+	<-done
+}
