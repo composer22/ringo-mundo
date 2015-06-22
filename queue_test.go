@@ -8,7 +8,6 @@ import (
 // A simple queue: Publisher <==> Consumer
 //
 func TestSimpleQueueSmall(t *testing.T) {
-	// Set to one process.
 	prevProcs := runtime.GOMAXPROCS(-1)
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	defer runtime.GOMAXPROCS(prevProcs)
@@ -38,7 +37,6 @@ func TestSimpleQueueSmall(t *testing.T) {
 // A simple queue: Publisher <==> Consumer
 // With larger buffer.
 func TestSimpleQueueLarge(t *testing.T) {
-	// Set to one process.
 	prevProcs := runtime.GOMAXPROCS(-1)
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	defer runtime.GOMAXPROCS(prevProcs)
@@ -67,7 +65,6 @@ func TestSimpleQueueLarge(t *testing.T) {
 
 // A Multi Publisher queue: n-Publishers <==> 1 Consumer
 func TestMultiQueueSmall(t *testing.T) {
-	// Set to one process.
 	prevProcs := runtime.GOMAXPROCS(-1)
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	defer runtime.GOMAXPROCS(prevProcs)
@@ -98,9 +95,8 @@ func TestMultiQueueSmall(t *testing.T) {
 // go test -run=XXX -bench .
 
 func BenchmarkSimpleQueue(b *testing.B) {
-	// Set to one process.
 	prevProcs := runtime.GOMAXPROCS(-1)
-	runtime.GOMAXPROCS(1) // runtime.NumCPU()
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	defer runtime.GOMAXPROCS(prevProcs)
 	interations := int64(b.N)
 
@@ -127,14 +123,13 @@ func BenchmarkSimpleQueue(b *testing.B) {
 	}
 	b.StopTimer()
 	<-done
+
 }
 
 // Multi publisher Queue Benchmark.
-// Because this depends on a lock in the master publisher so it can be shared, its slower.
 func BenchmarkMultiQueue(b *testing.B) {
-	// Set to one process.
 	prevProcs := runtime.GOMAXPROCS(-1)
-	runtime.GOMAXPROCS(1) // runtime.NumCPU()
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	defer runtime.GOMAXPROCS(prevProcs)
 	interations := int64(b.N)
 
@@ -168,7 +163,7 @@ func BenchmarkMultiQueue(b *testing.B) {
 //
 func BenchmarkChannelCompare(b *testing.B) {
 	prevProcs := runtime.GOMAXPROCS(-1)
-	runtime.GOMAXPROCS(1) //runtime.NumCPU()
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	defer runtime.GOMAXPROCS(prevProcs)
 	interations := int64(b.N)
 

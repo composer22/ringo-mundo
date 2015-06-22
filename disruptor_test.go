@@ -82,11 +82,9 @@ func TestDisruptorSmall(t *testing.T) {
 //
 // Using a simple publisher w/o lock instead of multiple w/ lock.
 // go test -run=XXX -bench=BenchmarkDisruptorSimple
-// 71.9 million transactions per second (13.9 ns/op)
-// Two CPUs work best
 func BenchmarkDisruptorSimple(b *testing.B) {
 	prevProcs := runtime.GOMAXPROCS(-1)
-	runtime.GOMAXPROCS(1) // runtime.NumCPU()
+	runtime.GOMAXPROCS(runtime.NumCPU()) // runtime.NumCPU()
 	defer runtime.GOMAXPROCS(prevProcs)
 	interations := int64(b.N)
 
@@ -149,11 +147,9 @@ func BenchmarkDisruptorSimple(b *testing.B) {
 // Multiple publishers - standard Disruptor pattern.
 //
 // go test -run=XXX -bench=BenchmarkDisruptorMulti
-// 29.2 million transactions per second (34.2 ns/op)
-// Two CPUs work best
 func BenchmarkDisruptorMulti(b *testing.B) {
 	prevProcs := runtime.GOMAXPROCS(-1)
-	runtime.GOMAXPROCS(1)
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	defer runtime.GOMAXPROCS(prevProcs)
 	interations := int64(b.N)
 

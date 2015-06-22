@@ -1,22 +1,16 @@
 package ringo
 
-import (
-	"runtime"
-	"sync/atomic"
-)
+import "sync/atomic"
 
 // MultiPublishNode is shared by multiple thread/go routines for publishing events to the ring buffer.
 // Because multiple routines must compete for next index, a single lock is maintained.
 type MultiPublishNode struct {
-	cachepad1  [8]int64
 	sequence   int64 // Write counter and index to the next ring buffer entry.
-	cachepad2  [8]int64
+	cachepad1  [7]int64
 	committed  int64 // Keeps track of the number of written events to the ring.
-	cachepad3  [8]int64
+	cachepad2  [7]int64
 	dependency *int64 // The consumer's committed register we are dependent to finish before proceeding.
-	cachepad4  [8]int64
-	buffSize   int64 // Size of the ring buffer.
-	cachepad5  [8]int64
+	buffSize   int64  // Size of the ring buffer.
 }
 
 // Factory function for returning a new instance of a MultiPublishNode.
@@ -32,7 +26,7 @@ func (m *MultiPublishNode) Reserve() int64 {
 		previous := m.sequence // Get the previous counter.
 		// Wait for room in the buffer if it is full.
 		for previous-*m.dependency == m.buffSize {
-			runtime.Gosched()
+			//			runtime.Gosched()
 		}
 		// Try and store the new increment. If it was changed by another routine, loop and try again.
 		if atomic.CompareAndSwapInt64(&m.sequence, previous, previous+1) {

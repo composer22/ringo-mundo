@@ -6,13 +6,10 @@ import "runtime"
 // There is no locking with this implementation. Only one go routine that acts as a publisher should
 // have an instantiate object for publishing events.
 type SimplePublishNode struct {
-	cachepad1  [8]int64
 	committed  int64 // Write counter and index to the next ring buffer entry.
-	cachepad2  [8]int64
+	cachepad1  [7]int64
 	dependency *int64 // The committed register that this object is dependent on to finish.
-	cachepad3  [8]int64
-	buffSize   int64 // Size of the ring buffer.
-	cachepad4  [8]int64
+	buffSize   int64  // Size of the ring buffer.
 }
 
 // Factory function for returning a new instance of a SimplePublishNode.
