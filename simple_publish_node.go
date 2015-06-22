@@ -7,10 +7,9 @@ import "runtime"
 // have an instantiate object for publishing events.
 type SimplePublishNode struct {
 	committed  int64 // Write counter and index to the next ring buffer entry.
-	cachepad2  [7]int64
+	cachepad1  [7]int64
 	dependency *int64 // The committed register that this object is dependent on to finish.
 	buffSize   int64  // Size of the ring buffer.
-	cachepad3  [6]int64
 }
 
 // Factory function for returning a new instance of a SimplePublishNode.

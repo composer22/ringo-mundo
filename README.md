@@ -8,7 +8,7 @@ A very simple and optimized package to help manage ring buffers, written in [Gol
 
 ## What This Package Does
 
-In creating queues for an application, Go channels, object allocation, and locks take up great amounts of processing time. This package provides a toolkit to eliminate contentions and unecessary memory allocation and processing.
+In creating queues for an application, Go channels, object allocation, and locks take up great amounts of processing time. This package provides a toolkit to eliminate contentions and unecessary memory allocation and processing yet still allow for queing mechanics.
 
 ## What is a Ring Buffer?
 
@@ -48,16 +48,25 @@ MBP 15-inch, Mid 2014
 16 GB 1600 MHz DDR3
 OSX 10.10.3
 
-Simple Queue - One CPU worked best in testing.
-=============================================
-SinglePublisher:         219.7 million transactions per second (4.55 ns/op)
-MultiPublisher:          72.4 million transactions per second (13.8 ns/op)
-Using Go Channel:        30.2 million transactions per second (33.1 ns/op)
 
-Disruptor Pattern - One CPU worked best in testing.
-===================================================
-SinglePublisher:         98.0 million transactions per second (10.2 ns/op)
-MultiPublisher:          50.0 million transactions per second (20.0 ns/op)
+ONE CPU
+==================
+SinglePublisher:         147.2 million transactions per second (6.79 ns/op)
+MultiPublisher:          72.9 million transactions per second (13.7 ns/op)
+Using Go Channel:        30.8 million transactions per second (32.4 ns/op)
+==================
+SingleDisruptor:         80.6 million transactions per second (12.4 ns/op)
+MultiDisruptor:          49.0 million transactions per second (20.4 ns/op)
+
+MULTI CPU
+==================
+SinglePublisher:         93.4 million transactions per second (10.7 ns/op)
+MultiPublisher:          45.8 million transactions per second (21.8 ns/op)
+Using Go Channel:        22.6 million transactions per second (44.2 ns/op)
+==================
+SingleDisruptor:         81.3 million transactions per second (12.3 ns/op)
+MultiDisruptor:          32.6 million transactions per second (30.6 ns/op)
+
 ```
 ## Getting Started
 

@@ -9,7 +9,6 @@ type SimpleConsumeNode struct {
 	committed  int64 // Read counter and index to the next ring buffer entry.
 	cachepad2  [7]int64
 	dependency *int64 // The committed register that this object is dependent on to finish.
-	cachepad3  [7]int64
 }
 
 // Factory function for returning a new instance of a SimpleConsumeNode.
