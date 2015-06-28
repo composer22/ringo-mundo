@@ -1,7 +1,8 @@
 package ringo
 
 const (
-	SequenceMax int64 = (1 << 63) - 1
+	sequenceMax  int64 = (1 << 63) - 1
+	initSeqValue int64 = -1
 
 	// Following are some ring buffer size recommendations based on powers of two
 	PT1Meg   = 1048576

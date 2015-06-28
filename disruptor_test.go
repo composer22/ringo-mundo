@@ -26,11 +26,11 @@ func TestDisruptorSmall(t *testing.T) {
 	defer runtime.GOMAXPROCS(prevProcs)
 
 	// Build the components
-	publisher := MultiPublishNodeNew(32) // Publisher to share in incoming go routines.
-	consumer1 := SimpleConsumeNodeNew()  // Consumer 1: Journaler.
-	consumer2 := SimpleConsumeNodeNew()  // Consumer 2: Send to external system go routine use.
-	barrier := BarrierNew()              // Barrier to watch consumer 1 and 2 committed counts.
-	consumer3 := SimpleConsumeNodeNew()  // Consumer 3: App consumer dependent on above for go routine.
+	publisher := NewMultiPublishNode(32) // Publisher to share in incoming go routines.
+	consumer1 := NewSimpleConsumeNode()  // Consumer 1: Journaler.
+	consumer2 := NewSimpleConsumeNode()  // Consumer 2: Send to external system go routine use.
+	barrier := NewConsumeBarrier()       // Barrier to watch consumer 1 and 2 committed counts.
+	consumer3 := NewSimpleConsumeNode()  // Consumer 3: App consumer dependent on above for go routine.
 
 	// Link the committed counter dependencies together.
 	consumer1.SetDependency(publisher.Committed()) // Watch publisher for work.
@@ -78,22 +78,21 @@ func TestDisruptorSmall(t *testing.T) {
 
 }
 
+// go test -run=XXX -bench=BenchmarkDisruptor
+
 // Simplified Disruptor Pattern - Single publishing source.
-//
-// Using a simple publisher w/o lock instead of multiple w/ lock.
-// go test -run=XXX -bench=BenchmarkDisruptorSimple
-func BenchmarkDisruptorSimple(b *testing.B) {
+func BenchmarkDisruptorSimpleType1(b *testing.B) {
 	prevProcs := runtime.GOMAXPROCS(-1)
 	runtime.GOMAXPROCS(runtime.NumCPU()) // runtime.NumCPU()
 	defer runtime.GOMAXPROCS(prevProcs)
 	interations := int64(b.N)
 
 	// Build the components
-	publisher := SimplePublishNodeNew(PT64Meg) // Publisher for one incoming go routine.
-	consumer1 := SimpleConsumeNodeNew()        // Consumer 1: Journaler
-	consumer2 := SimpleConsumeNodeNew()        // Consumer 2: Send to external system go routine use.
-	barrier := BarrierNew()                    // Barrier to watch consumer 1 and 2.
-	consumer3 := SimpleConsumeNodeNew()        // Consumer 3: App consumer dependent on above for go routine.
+	publisher := NewSimplePublishNode(PT64Meg) // Publisher for one incoming go routine.
+	consumer1 := NewSimpleConsumeNode()        // Consumer 1: Journaler
+	consumer2 := NewSimpleConsumeNode()        // Consumer 2: Send to external system go routine use.
+	barrier := NewConsumeBarrier()             // Barrier to watch consumer 1 and 2.
+	consumer3 := NewSimpleConsumeNode()        // Consumer 3: App consumer dependent on above for go routine.
 
 	// Link the committed counter dependencies together.
 	consumer1.SetDependency(publisher.Committed())
@@ -145,20 +144,18 @@ func BenchmarkDisruptorSimple(b *testing.B) {
 }
 
 // Multiple publishers - standard Disruptor pattern.
-//
-// go test -run=XXX -bench=BenchmarkDisruptorMulti
-func BenchmarkDisruptorMulti(b *testing.B) {
+func BenchmarkDisruptorMultiType1(b *testing.B) {
 	prevProcs := runtime.GOMAXPROCS(-1)
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	defer runtime.GOMAXPROCS(prevProcs)
 	interations := int64(b.N)
 
 	// Build the components
-	publisher := MultiPublishNodeNew(PT64Meg) // Publisher to share in incoming go routines.
-	consumer1 := SimpleConsumeNodeNew()       // Consumer 1: Journaler
-	consumer2 := SimpleConsumeNodeNew()       // Consumer 2: Send to external system go routine use.
-	barrier := BarrierNew()                   // Barrier to watch consumer 1 and 2.
-	consumer3 := SimpleConsumeNodeNew()       // Consumer 3: App consumer dependent on above for go routine.
+	publisher := NewMultiPublishNode(PT64Meg) // Publisher to share in incoming go routines.
+	consumer1 := NewSimpleConsumeNode()       // Consumer 1: Journaler
+	consumer2 := NewSimpleConsumeNode()       // Consumer 2: Send to external system go routine use.
+	barrier := NewConsumeBarrier()            // Barrier to watch consumer 1 and 2.
+	consumer3 := NewSimpleConsumeNode()       // Consumer 3: App consumer dependent on above for go routine.
 
 	// Link the committed counter dependencies together.
 	consumer1.SetDependency(publisher.Committed())

@@ -14,8 +14,8 @@ In creating queues for an application, Go channels, object allocation, and locks
 
 A ring buffer is simply an array of values who's head wraps around to the first slot.  For example, an 8 position ring buffer:
 ```
-Actual Cell        [0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 0 | 1 | 2 | 3 | ...]
-Increment Index     0   1   2   3   4   5   6   7   8   9   10  11  ...
+Actual Cell        [0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 || 0 | 1 | 2 | 3 | ...]
+Increment Index     0   1   2   3   4   5   6   7    8   9   10  11  ...
 
 Using modulus arithmetic any incremented index can be converted to the actual index of an array.
 
@@ -39,35 +39,6 @@ One of more publishers use a Publisher object to coordinate and place informatio
 
 To help facilitate multiplexing of Consumers, and to gate any dependencies, a Barrier object is also provided.
 
-## Performance
-
-The following benchmarks were gathered on a development machine.
-```
-MBP 15-inch, Mid 2014
-2.5 GHz Intel Core i7 Quad
-16 GB 1600 MHz DDR3
-OSX 10.10.3
-
-
-ONE CPU
-==================
-SinglePublisher:         147.2 million transactions per second (6.79 ns/op)
-MultiPublisher:          72.9 million transactions per second (13.7 ns/op)
-Using Go Channel:        30.8 million transactions per second (32.4 ns/op)
-==================
-SingleDisruptor:         80.6 million transactions per second (12.4 ns/op)
-MultiDisruptor:          49.0 million transactions per second (20.4 ns/op)
-
-MULTI CPU
-==================
-SinglePublisher:         93.4 million transactions per second (10.7 ns/op)
-MultiPublisher:          45.8 million transactions per second (21.8 ns/op)
-Using Go Channel:        22.6 million transactions per second (44.2 ns/op)
-==================
-SingleDisruptor:         81.3 million transactions per second (12.3 ns/op)
-MultiDisruptor:          32.6 million transactions per second (30.6 ns/op)
-
-```
 ## Getting Started
 
 To create a ring-buffer, first pre-allocate a specialized array of work you want to track.
@@ -100,7 +71,7 @@ A publisher go routine would be coded to get work into the buffer:
 ```
 for {
   index := publisher.Reserve()  // Reserve a new index
-  ring[index&mask].foo = 99  // Store some data into a work slot of the ring.
+  ring[*index&mask].foo = 99  // Store some data into a work slot of the ring.
   publisher.Commit()            // Mark as done.
 }
 ```
@@ -116,7 +87,43 @@ for {
 ```
 The *index&mask is the same as index % size.
 
-For a more complex example, see the Disruptor pattern, which demonstrates mutiplexing and chained consumers (disruptor_test.go).
+## Supplied Components
+
+This package supplied two different techniques for handling ringbuffers.
+
+Type 1 - uses counters for controlling dependencies. It uses less memory but is slower than Type 2.
+Type 2 - uses status ring buffers for controlling dependencies.  It's faster than Type 1, but needs memory.
+
+See the test files for examples on how to wire up these networks.
+
+## Performance
+
+The following benchmarks were gathered on a development machine.
+```
+MBP 15-inch, Mid 2014
+2.5 GHz Intel Core i7 Quad
+16 GB 1600 MHz DDR3
+OSX 10.10.3
+
+
+ONE CPU
+==================
+SinglePublisher:         147.2 million transactions per second (6.79 ns/op)
+MultiPublisher:          72.9 million transactions per second (13.7 ns/op)
+Using Go Channel:        30.8 million transactions per second (32.4 ns/op)
+==================
+SingleDisruptor:         80.6 million transactions per second (12.4 ns/op)
+MultiDisruptor:          49.0 million transactions per second (20.4 ns/op)
+
+MULTI CPU
+==================
+SinglePublisher:         93.4 million transactions per second (10.7 ns/op)
+MultiPublisher:          45.8 million transactions per second (21.8 ns/op)
+Using Go Channel:        22.6 million transactions per second (44.2 ns/op)
+==================
+SingleDisruptor:         81.3 million transactions per second (12.3 ns/op)
+MultiDisruptor:          32.6 million transactions per second (30.6 ns/op)
+```
 
 ## Building
 
@@ -136,6 +143,14 @@ Run `go install` installs the package into your local repo.
 A successful build run produces no messages and publishes the package to your path.
 
 Run `go help` for more guidance, and visit <http://golang.org/> for tutorials, presentations, references and more.
+
+## Influences:
+
+see:
+
+<http://lmax-exchange.github.io/disruptor/>
+<http://mechanitis.blogspot.com/search/label/disruptor>
+<https://github.com/smartystreets/go-disruptor>
 
 ## License
 
