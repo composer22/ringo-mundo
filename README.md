@@ -4,11 +4,11 @@
 [![Current Release](https://img.shields.io/badge/release-v0.1.0-brightgreen.svg)](https://github.com/composer22/chattypantz/releases/tag/v0.1.0)
 [![Coverage Status](https://coveralls.io/repos/composer22/ringo-mundo/badge.svg?branch=master)](https://coveralls.io/r/composer22/ringo-mundo?branch=master)
 
-A very simple and optimized package to help manage ring buffers, written in [Golang.](http://golang.org).
+A very simple optimized package to help manage ring buffers, written in [Golang.](http://golang.org).
 
 ## What This Package Does
 
-In creating queues for an application, Go channels, object allocation, and locks take up great amounts of processing time. This package provides a toolkit to eliminate contentions and unecessary memory allocation and processing yet still allow for queing mechanics.
+In creating queues for an application, Go channels, object allocation, and locks take up great amounts of processing time. This package provides a toolkit to eliminate contentions and unecessary processing yet still allow for queing mechanics.
 
 ## What is a Ring Buffer?
 
@@ -56,8 +56,8 @@ Note that the size is expressed as a power of two and is quite large. See the co
 
 Next, we create the network of components to manage this ring. For example, a simple publish/subscribe queue:
 ```
-publisher := ringo.SimplePublishNodeNew(ringSize)
-consumer := ringo.SimpleConsumeNodeNew()
+publisher := ringo.NewSimplePublishNode(ringSize)
+consumer := ringo.NewSimpleConsumeNode()
 // Set each component to check the others committed counters.
 publisher.SetDependency(consumer.Committed())
 consumer.SetDependency(publisher.Committed())
@@ -91,8 +91,19 @@ The *index&mask is the same as index % size.
 
 This package supplied two different techniques for handling ringbuffers.
 
-Type 1 - uses counters for controlling dependencies. It uses less memory but is slower than Type 2.
-Type 2 - uses status ring buffers for controlling dependencies.  It's faster than Type 1, but needs memory.
+* Type 1 - uses counters for controlling dependencies. It uses less memory but is slower than Type 2.
+* Type 2 - uses status ring buffers for controlling dependencies. It's faster than Type 1, but needs memory.
+
+Type 1 components consist of:
+* simplePublishNode
+* multiPublishNode
+* simpleConsumeNode
+* consumeBarrier
+
+Type 2 components consist of:
+* simpleNode
+* multiNode
+* nodeBarrier
 
 See the test files for examples on how to wire up these networks.
 
@@ -104,27 +115,20 @@ MBP 15-inch, Mid 2014
 2.5 GHz Intel Core i7 Quad
 16 GB 1600 MHz DDR3
 OSX 10.10.3
+Goprocs = 4
 
-
-ONE CPU
 ==================
-SinglePublisher:         147.2 million transactions per second (6.79 ns/op)
-MultiPublisher:          72.9 million transactions per second (13.7 ns/op)
-Using Go Channel:        30.8 million transactions per second (32.4 ns/op)
+SimpleQueue Type1:         90.9 million transactions per second (11.0 ns/op)
+SimpleQueue Type2:        120.3 million transactions per second (8.31 ns/op)
+MultiQueue  Type1:         40.6 million transactions per second (24.6 ns/op)
+MultiQueue  Type2:         56.2 million transactions per second (17.8 ns/op)
+Using Go Channel:          20.8 million transactions per second (48.0 ns/op)
 ==================
-SingleDisruptor:         80.6 million transactions per second (12.4 ns/op)
-MultiDisruptor:          49.0 million transactions per second (20.4 ns/op)
-
-MULTI CPU
-==================
-SinglePublisher:         93.4 million transactions per second (10.7 ns/op)
-MultiPublisher:          45.8 million transactions per second (21.8 ns/op)
-Using Go Channel:        22.6 million transactions per second (44.2 ns/op)
-==================
-SingleDisruptor:         81.3 million transactions per second (12.3 ns/op)
-MultiDisruptor:          32.6 million transactions per second (30.6 ns/op)
+SimpleDisruptor Type1:     83.3 million transactions per second (12.0 ns/op)
+SimpleDisruptor Type2:    107.6 million transactions per second (9.29 ns/op)
+MultiDisruptor  Type1:     32.7 million transactions per second (30.6 ns/op)
+MultiDisruptor  Type2:     51.8 million transactions per second (19.3 ns/op)
 ```
-
 ## Building
 
 This code currently requires version 1.42 or higher of Go.

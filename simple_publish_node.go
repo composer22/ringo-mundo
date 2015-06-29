@@ -1,6 +1,6 @@
 package ringo
 
-import "time"
+import "runtime"
 
 // simplePublishNode represents a publisher, a job source who submits entries into the ring buffer.
 // There is no locking with this implementation. Only one go routine that acts as a publisher should
@@ -23,7 +23,7 @@ func NewSimplePublishNode(size int64) *simplePublishNode {
 // It returns the next index as a pointer.
 func (s *simplePublishNode) Reserve() *int64 {
 	for s.committed-*s.dependency == s.buffSize {
-		time.Sleep(time.Microsecond)
+		runtime.Gosched()
 	}
 	return &s.committed
 }

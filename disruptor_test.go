@@ -20,7 +20,7 @@ import (
 //         ^^                                                                                    VV
 //         ||--------------------------------------- <== dependency <== -------------------------||
 //
-func TestDisruptorSmall(t *testing.T) {
+func TestDisruptorSmallType1(t *testing.T) {
 	prevProcs := runtime.GOMAXPROCS(-1)
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	defer runtime.GOMAXPROCS(prevProcs)
@@ -75,7 +75,63 @@ func TestDisruptorSmall(t *testing.T) {
 
 	<-done
 	barrier.Stop()
+}
 
+func TestDisruptorSmallType2(t *testing.T) {
+	prevProcs := runtime.GOMAXPROCS(-1)
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	defer runtime.GOMAXPROCS(prevProcs)
+
+	// Build the components
+	publisher := NewSimpleNode(true, 32)  // Publisher for one incoming go routine.
+	consumer1 := NewSimpleNode(false, 32) // Consumer 1: Journaler
+	consumer2 := NewSimpleNode(false, 32) // Consumer 2: Send to external system go routine use.
+	barrier := NewNodeBarrier(32)         // Barrier to watch consumer 1 and 2.
+	consumer3 := NewSimpleNode(false, 32) // Consumer 3: App consumer dependent on above for go routine.
+
+	// Link the committed counter dependencies together.
+	consumer1.SetDependency(publisher.Committed())
+	consumer2.SetDependency(publisher.Committed())
+	barrier.AddDependency(consumer1.Committed())
+	barrier.AddDependency(consumer2.Committed())
+	consumer3.SetDependency(barrier.Committed())
+	publisher.SetDependency(consumer3.Committed())
+
+	done := make(chan bool)
+
+	go func() {
+		for i := int64(0); i < 64; i++ {
+			ndx := consumer1.Reserve()
+			consumer1.Commit(ndx)
+		}
+	}()
+
+	go func() {
+		for i := int64(0); i < 64; i++ {
+			ndx := consumer2.Reserve()
+			consumer2.Commit(ndx)
+		}
+	}()
+
+	go func() {
+		barrier.Run()
+	}()
+
+	go func() {
+		for i := int64(0); i < 64; i++ {
+			ndx := consumer3.Reserve()
+			consumer3.Commit(ndx)
+		}
+		done <- true
+	}()
+
+	for i := int64(0); i < 64; i++ {
+		ndx := publisher.Reserve()
+		publisher.Commit(ndx)
+	}
+
+	<-done
+	barrier.Stop()
 }
 
 // go test -run=XXX -bench=BenchmarkDisruptor
@@ -198,6 +254,132 @@ func BenchmarkDisruptorMultiType1(b *testing.B) {
 	for i := int64(0); i < interations; i++ {
 		publisher.Reserve()
 		publisher.Commit()
+	}
+
+	b.StopTimer()
+
+	<-done
+	barrier.Stop()
+}
+
+// Simplified Disruptor Pattern - Single publishing source.
+func BenchmarkDisruptorSimpleType2(b *testing.B) {
+	prevProcs := runtime.GOMAXPROCS(-1)
+	runtime.GOMAXPROCS(runtime.NumCPU()) // runtime.NumCPU()
+	defer runtime.GOMAXPROCS(prevProcs)
+	interations := int64(b.N)
+
+	// Build the components
+	publisher := NewSimpleNode(true, PT64Meg)  // Publisher for one incoming go routine.
+	consumer1 := NewSimpleNode(false, PT64Meg) // Consumer 1: Journaler
+	consumer2 := NewSimpleNode(false, PT64Meg) // Consumer 2: Send to external system go routine use.
+	barrier := NewNodeBarrier(PT64Meg)         // Barrier to watch consumer 1 and 2.
+	consumer3 := NewSimpleNode(false, PT64Meg) // Consumer 3: App consumer dependent on above for go routine.
+
+	// Link the committed counter dependencies together.
+	consumer1.SetDependency(publisher.Committed())
+	consumer2.SetDependency(publisher.Committed())
+	barrier.AddDependency(consumer1.Committed())
+	barrier.AddDependency(consumer2.Committed())
+	consumer3.SetDependency(barrier.Committed())
+	publisher.SetDependency(consumer3.Committed())
+
+	done := make(chan bool)
+
+	go func() {
+		for i := int64(0); i < interations; i++ {
+			ndx := consumer1.Reserve()
+			consumer1.Commit(ndx)
+		}
+	}()
+
+	go func() {
+		for i := int64(0); i < interations; i++ {
+			ndx := consumer2.Reserve()
+			consumer2.Commit(ndx)
+		}
+	}()
+
+	go func() {
+		barrier.Run()
+	}()
+
+	go func() {
+		for i := int64(0); i < interations; i++ {
+			ndx := consumer3.Reserve()
+			consumer3.Commit(ndx)
+		}
+		done <- true
+	}()
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := int64(0); i < interations; i++ {
+		ndx := publisher.Reserve()
+		publisher.Commit(ndx)
+	}
+
+	b.StopTimer()
+
+	<-done
+	barrier.Stop()
+}
+
+// Multiple publishers - standard Disruptor pattern.
+func BenchmarkDisruptorMultiType2(b *testing.B) {
+	prevProcs := runtime.GOMAXPROCS(-1)
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	defer runtime.GOMAXPROCS(prevProcs)
+	interations := int64(b.N)
+
+	// Build the components
+	publisher := NewMultiNode(true, PT64Meg)   // Publisher for one incoming go routine.
+	consumer1 := NewSimpleNode(false, PT64Meg) // Consumer 1: Journaler
+	consumer2 := NewSimpleNode(false, PT64Meg) // Consumer 2: Send to external system go routine use.
+	barrier := NewNodeBarrier(PT64Meg)         // Barrier to watch consumer 1 and 2.
+	consumer3 := NewSimpleNode(false, PT64Meg) // Consumer 3: App consumer dependent on above for go routine.
+
+	// Link the committed counter dependencies together.
+	consumer1.SetDependency(publisher.Committed())
+	consumer2.SetDependency(publisher.Committed())
+	barrier.AddDependency(consumer1.Committed())
+	barrier.AddDependency(consumer2.Committed())
+	consumer3.SetDependency(barrier.Committed())
+	publisher.SetDependency(consumer3.Committed())
+
+	done := make(chan bool)
+
+	go func() {
+		for i := int64(0); i < interations; i++ {
+			ndx := consumer1.Reserve()
+			consumer1.Commit(ndx)
+		}
+	}()
+
+	go func() {
+		for i := int64(0); i < interations; i++ {
+			ndx := consumer2.Reserve()
+			consumer2.Commit(ndx)
+		}
+	}()
+
+	go func() {
+		barrier.Run()
+	}()
+
+	go func() {
+		for i := int64(0); i < interations; i++ {
+			ndx := consumer3.Reserve()
+			consumer3.Commit(ndx)
+		}
+		done <- true
+	}()
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := int64(0); i < interations; i++ {
+		ndx := publisher.Reserve()
+		publisher.Commit(ndx)
 	}
 
 	b.StopTimer()

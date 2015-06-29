@@ -1,6 +1,6 @@
 package ringo
 
-import "time"
+import "runtime"
 
 // simpleConsumeNode represents a reader, a consumer who processes entries from the ring buffer.
 // Each go routine that acts as a consumer should have an instantiated object for tracking it's results.
@@ -20,7 +20,7 @@ func NewSimpleConsumeNode() *simpleConsumeNode {
 // It returns the next index as a pointer.
 func (s *simpleConsumeNode) Reserve() *int64 {
 	for *s.dependency-s.committed == 0 {
-		time.Sleep(time.Microsecond)
+		runtime.Gosched()
 	}
 	return &s.committed
 }

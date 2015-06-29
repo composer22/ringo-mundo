@@ -1,8 +1,8 @@
 package ringo
 
 import (
+	"runtime"
 	"sync/atomic"
-	"time"
 )
 
 // multiPublishNode is shared by multiple thread/go routines for publishing events to the ring buffer.
@@ -29,7 +29,7 @@ func (m *multiPublishNode) Reserve() int64 {
 		previous := m.sequence // Get the previous counter.
 		// Wait for room in the buffer if it is full.
 		for previous-*m.dependency == m.buffSize {
-			time.Sleep(time.Microsecond)
+			runtime.Gosched()
 		}
 		// Try and store the new increment. If it was changed by another routine, loop and try again.
 		if atomic.CompareAndSwapInt64(&m.sequence, previous, previous+1) {
