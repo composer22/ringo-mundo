@@ -118,11 +118,11 @@ OSX 10.10.3
 Goprocs = 4
 
 ==================
-SimpleQueue Type1:         90.9 million transactions per second (11.0 ns/op)
-SimpleQueue Type2:        120.3 million transactions per second (8.31 ns/op)
-MultiQueue  Type1:         40.6 million transactions per second (24.6 ns/op)
-MultiQueue  Type2:         56.2 million transactions per second (17.8 ns/op)
-Using Go Channel:          20.8 million transactions per second (48.0 ns/op)
+SimpleQueue Type1:         94.3 million transactions per second (10.6 ns/op)
+SimpleQueue Type2:        147.9 million transactions per second (6.76 ns/op)
+MultiQueue  Type1:         46.0 million transactions per second (21.7 ns/op)
+MultiQueue  Type2:         56.4 million transactions per second (17.7 ns/op)
+Using Go Channel:          21.6 million transactions per second (46.3 ns/op)
 ==================
 SimpleDisruptor Type1:     83.3 million transactions per second (12.0 ns/op)
 SimpleDisruptor Type2:    107.6 million transactions per second (9.29 ns/op)
